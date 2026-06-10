@@ -1,0 +1,11 @@
+# Changes here will be overwritten by Copier; do not edit manually.
+#
+# HAND-ROLLED: no github-actions-lib template variant for JVM/Kotlin exists in
+# ffreis-project-templates yet. Structure mirrors devops/ffreis-workflows-go.
+# FOLLOW-UP: fold a `workflows-lib` template into ffreis-project-templates and
+# run `copier update` here to converge.
+_src_path: gh:FelipeFuhr/ffreis-project-templates
+_subdirectory: templates/github-actions-lib
+repo_name: ffreis-workflows-kotlin
+github_org: FelipeFuhr
+description: "Reusable GitHub Actions workflows for Kotlin / Android (Gradle) projects."

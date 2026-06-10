@@ -1,0 +1,54 @@
+name: CI
+
+# Self-test: exercises every kotlin-*.yml reusable workflow against examples/hello/.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    branches: [main]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  workflows-policy:
+    permissions:
+      contents: read
+    uses: FelipeFuhr/ffreis-workflows-general/.github/workflows/general-workflows-policy.yml@caa797cc7baec52e99f21b86f532a4b7c88cf4fa # fix/grype-install-outside-scan-path
+
+  codeql-actions:
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+    uses: FelipeFuhr/ffreis-workflows-general/.github/workflows/general-codeql.yml@caa797cc7baec52e99f21b86f532a4b7c88cf4fa # fix/grype-install-outside-scan-path
+    with:
+      languages: actions
+      source-root: .
+      upload-sarif: false
+
+  lint:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/kotlin-lint.yml
+    with:
+      working-directory: examples/hello
+      lint-tasks: ktlintCheck
+
+  build:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/kotlin-build.yml
+    with:
+      working-directory: examples/hello
+      build-task: build
+
+  test:
+    permissions:
+      contents: read
+    uses: ./.github/workflows/kotlin-test.yml
+    with:
+      working-directory: examples/hello
+      test-task: test

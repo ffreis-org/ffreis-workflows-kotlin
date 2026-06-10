@@ -1,0 +1,58 @@
+name: Kotlin Lint
+
+on:
+  workflow_call:
+    inputs:
+      java-version:
+        description: "JDK version"
+        required: false
+        type: string
+        default: "17"
+      working-directory:
+        description: "Directory containing the Gradle project"
+        required: false
+        type: string
+        default: "."
+      lint-tasks:
+        description: "Gradle lint tasks to run (space-separated). Android consumers pass e.g. 'ktlintCheck detekt lintDebug'."
+        required: false
+        type: string
+        default: "ktlintCheck"
+      run_on_draft:
+        description: "Run even on draft PRs (default: skip on draft to save CI minutes)"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  lint:
+    if: ${{ inputs.run_on_draft || vars.CI_RUN_ON_DRAFT == 'true' || github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    name: Lint (ktlint / detekt)
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    env:
+      LINT_TASKS: ${{ inputs.lint-tasks }}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: actions/setup-java@c1e323688fd81a25caa38c78aa6df2d33d3e20d9 # v4.8.0
+        with:
+          distribution: temurin
+          java-version: ${{ inputs.java-version }}
+
+      - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
+
+      - name: Run Gradle lint tasks
+        run: |
+          # shellcheck disable=SC2086  # intentional: $LINT_TASKS holds multiple space-separated Gradle tasks
+          ./gradlew --no-daemon $LINT_TASKS
