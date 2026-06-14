@@ -12,7 +12,7 @@ on:
         description: "mobsfscan version to install via pip (Renovate-managed)"
         required: false
         type: string
-        default: "0.3.11"
+        default: "0.4.5"
       run_on_draft:
         description: "Run even on draft PRs (default: skip on draft to save CI minutes)"
         required: false
