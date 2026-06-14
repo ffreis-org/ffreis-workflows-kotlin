@@ -1,0 +1,73 @@
+name: Kotlin Security
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: "Directory containing the Android/Kotlin source to scan"
+        required: false
+        type: string
+        default: "."
+      mobsfscan-version:
+        description: "mobsfscan version to install via pip (Renovate-managed)"
+        required: false
+        type: string
+        default: "0.3.11"
+      run_on_draft:
+        description: "Run even on draft PRs (default: skip on draft to save CI minutes)"
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  security:
+    if: ${{ inputs.run_on_draft || vars.CI_RUN_ON_DRAFT == 'true' || github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    name: mobsfscan (Android Kotlin)
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    env:
+      MOBSFSCAN_VERSION: ${{ inputs.mobsfscan-version }}
+    steps:
+      - name: Harden the runner (Audit all outbound calls)
+        uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install mobsfscan
+        run: pip install "mobsfscan==${MOBSFSCAN_VERSION}"
+
+      - name: Run mobsfscan
+        run: |
+          set -euo pipefail
+          mobsfscan --json --output mobsfscan-results.json . || true
+          python3 - <<'EOF'
+          import json, sys
+          with open("mobsfscan-results.json") as f:
+              r = json.load(f)
+          issues = r.get("results", {}).get("android_kotlin", [])
+          high = [i for i in issues if i.get("metadata", {}).get("severity", "") == "high"]
+          if high:
+              for i in high:
+                  desc = i["metadata"]["description"]
+                  rule = i["metadata"]["rule_id"]
+                  print(f"::error::{desc} ({rule})")
+              print(f"mobsfscan: {len(high)} high-severity issue(s) — failing")
+              sys.exit(1)
+          print(f"mobsfscan: {len(issues)} issue(s), 0 high-severity")
+          EOF
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mobsfscan-kotlin-results
+          path: ${{ inputs.working-directory }}/mobsfscan-results.json
+          if-no-files-found: ignore
+          retention-days: 7
