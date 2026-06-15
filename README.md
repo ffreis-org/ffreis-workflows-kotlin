@@ -1,5 +1,9 @@
 # ffreis-workflows-kotlin
 
+<!-- ffreis-badges:start -->
+[![CI](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/FelipeFuhr/ffreis-badges/main/badges/ffreis-workflows-kotlin/ci.json)](https://github.com/FelipeFuhr/ffreis-workflows-kotlin/actions) [![Latest version](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/FelipeFuhr/ffreis-badges/main/badges/ffreis-workflows-kotlin/version.json)](https://github.com/FelipeFuhr/ffreis-workflows-kotlin/releases) [![License](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/FelipeFuhr/ffreis-badges/main/badges/ffreis-workflows-kotlin/license.json)](https://github.com/FelipeFuhr/ffreis-workflows-kotlin/blob/main/LICENSE)
+<!-- ffreis-badges:end -->
+
 Reusable GitHub Actions workflows for Kotlin / Android (Gradle) projects. All run on
 `ubuntu-latest` (the GitHub image ships the Android SDK, so `assembleDebug` needs no macOS).
 
