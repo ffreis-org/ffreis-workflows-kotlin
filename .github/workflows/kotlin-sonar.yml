@@ -70,6 +70,20 @@ jobs:
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
+    env:
+      # Self-hosted homelab pods run under a 3Gi cgroup memory.max with no swap; an untuned
+      # Gradle/Kotlin daemon config grows well past that (observed incident: an untuned Gradle
+      # build JVM alone hit 2.4GB RSS, and together with a Kotlin compile daemon + aapt2 + the
+      # runner agent in the same cgroup it OOM-killed the whole pod). Cap every JVM the coverage
+      # step below starts: Gradle build JVM ceiling 1536m heap + 384m metaspace (~1.9Gi) + Kotlin
+      # daemon ceiling 768m heap = ~2.6Gi total, leaving ~400Mi headroom under 3Gi for the runner
+      # agent + aapt2 + OS. `--no-daemon` (below) already makes the Gradle daemon single-use;
+      # disabling it here too is defense-in-depth. Harmless on GitHub-hosted ubuntu-latest.
+      GRADLE_OPTS: >-
+        -Dorg.gradle.jvmargs="-Xmx1536m -XX:MaxMetaspaceSize=384m"
+        -Dorg.gradle.workers.max=2
+        -Dorg.gradle.daemon=false
+        -Dkotlin.daemon.jvm.options=-Xmx768m
     steps:
       - name: Harden the runner (Audit all outbound calls)
         uses: step-security/harden-runner@a5ad31d6a139d249332a2605b85202e8c0b78450 # v2.19.1
