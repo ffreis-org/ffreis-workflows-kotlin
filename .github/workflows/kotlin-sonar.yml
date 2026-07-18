@@ -43,6 +43,18 @@ on:
         required: false
         type: boolean
         default: false
+      runner:
+        description: |
+          JSON-encoded runner label(s). Default: GitHub-hosted ubuntu-latest.
+          Self-hosted homelab box (private repos only): '["self-hosted","local"]'
+        required: false
+        type: string
+        default: '["ubuntu-latest"]'
+      android-sdk:
+        description: "Set up the Android SDK before generating coverage via Gradle (only relevant when test-with-coverage-task is set and coverage-artifact-name is not; no-op cost otherwise)."
+        required: false
+        type: boolean
+        default: false
     secrets:
       SONAR_TOKEN:
         required: true
@@ -54,7 +66,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJson(inputs.runner) }}
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -81,6 +93,10 @@ jobs:
         with:
           name: ${{ inputs.coverage-artifact-name }}
           path: ${{ inputs.working-directory }}
+
+      - name: Set up Android SDK
+        if: inputs.android-sdk && inputs.coverage-artifact-name == '' && inputs.test-with-coverage-task != ''
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
 
       - name: Generate coverage
         if: inputs.coverage-artifact-name == '' && inputs.test-with-coverage-task != ''

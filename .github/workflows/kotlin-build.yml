@@ -38,6 +38,18 @@ on:
         required: false
         type: boolean
         default: false
+      runner:
+        description: |
+          JSON-encoded runner label(s). Default: GitHub-hosted ubuntu-latest.
+          Self-hosted homelab box (private repos only): '["self-hosted","local"]'
+        required: false
+        type: string
+        default: '["ubuntu-latest"]'
+      android-sdk:
+        description: "Set up the Android SDK before the Gradle step (needed for Android Gradle Plugin projects; no-op cost for pure-JVM Kotlin consumers)."
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -46,7 +58,7 @@ jobs:
     timeout-minutes: 30
     permissions:
       contents: read
-    runs-on: ubuntu-latest
+    runs-on: ${{ fromJson(inputs.runner) }}
     defaults:
       run:
         working-directory: ${{ inputs.working-directory }}
@@ -66,6 +78,10 @@ jobs:
           java-version: ${{ inputs.java-version }}
 
       - uses: gradle/actions/setup-gradle@748248ddd2a24f49513d8f472f81c3a07d4d50e1 # v4.4.4
+
+      - name: Set up Android SDK
+        if: ${{ inputs.android-sdk }}
+        uses: android-actions/setup-android@40fd30fb8d7440372e1316f5d1809ec01dcd3699 # v4.0.1
 
       - name: Build
         run: |
