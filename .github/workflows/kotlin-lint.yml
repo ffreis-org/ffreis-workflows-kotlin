@@ -26,7 +26,6 @@ on:
       runner:
         description: |
           JSON-encoded runner label(s). Default: GitHub-hosted ubuntu-latest.
-          Self-hosted homelab box (private repos only): '["self-hosted","local"]'
         required: false
         type: string
         default: '["ubuntu-latest"]'
@@ -49,7 +48,6 @@ jobs:
         working-directory: ${{ inputs.working-directory }}
     env:
       LINT_TASKS: ${{ inputs.lint-tasks }}
-      # Self-hosted homelab pods run under a 3Gi cgroup memory.max with no swap; an untuned
       # Gradle/Kotlin daemon config grows well past that (observed incident: an untuned Gradle
       # build JVM alone hit 2.4GB RSS, and together with a Kotlin compile daemon + aapt2 + the
       # runner agent in the same cgroup it OOM-killed the whole pod). Cap every JVM this workflow
