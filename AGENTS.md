@@ -16,8 +16,8 @@ Reusable GitHub Actions workflow library for **Kotlin / Android (Gradle)** proje
 5. **`runs-on: ${{ fromJson(inputs.runner) }}`, default `["ubuntu-latest"]`.** Kotlin/Android
    tooling is Linux-friendly; GitHub-hosted `ubuntu-latest` ships the Android SDK, so
    `assembleDebug` works there without any extra setup. Every reusable workflow here takes a
-   `runner:` input (JSON-encoded label array) so a caller can opt into the homelab self-hosted
-   runner (`'["self-hosted","local"]'`, private repos only) — the default is unchanged.
+   `runner:` input (JSON-encoded label array) so a caller can opt into the self-hosted
+   runner (private repos only) — the default is unchanged.
    **Never add a macOS runner here** — that's the swift lib's (guarded) concern.
 6. **Draft-skip + cost:** every workflow takes `run_on_draft` and gates with the standard
    `if: ${{ inputs.run_on_draft || vars.CI_RUN_ON_DRAFT == 'true' || github.event_name != 'pull_request' || github.event.pull_request.draft == false }}`.
@@ -25,7 +25,7 @@ Reusable GitHub Actions workflow library for **Kotlin / Android (Gradle)** proje
    comment; never hand-bump.
 8. **Route inputs through `env:`** in `run:` steps (no `${{ inputs.* }}` interpolation in shell) to
    prevent injection.
-9. **Android SDK is NOT preinstalled on the self-hosted homelab runner** (unlike GitHub-hosted
+9. **Android SDK is NOT preinstalled on the self-hosted runner** (unlike GitHub-hosted
    `ubuntu-latest`, which ships it). `kotlin-build.yml`, `kotlin-lint.yml`, and `kotlin-test.yml`
    take an opt-in `android-sdk: true` boolean input that runs `android-actions/setup-android`
    before the Gradle step; `kotlin-sonar.yml` takes the same input gated to only its conditional
